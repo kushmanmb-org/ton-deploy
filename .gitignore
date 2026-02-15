@@ -11,3 +11,4 @@ blockchain-explorer
 medium
 indexer.Dockerfile
 .vscode
+node_modules
