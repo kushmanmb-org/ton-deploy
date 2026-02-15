@@ -1,0 +1,31 @@
+FROM ubuntu:20.04 as apiTon
+
+ARG DEBIAN_FRONTEND=noninteractive
+
+RUN apt update && \
+	apt install -y curl build-essential openssl libssl-dev
+
+# Install Node.js 16.x
+RUN curl -fsSL https://deb.nodesource.com/setup_16.x | bash - && \
+	apt-get install -y nodejs
+
+# Install Yarn
+RUN npm install -g yarn
+
+RUN mkdir -p /var/ton-api
+
+COPY --from=ton_builder /ton/build/blockchain-api/blockchain-api /var/ton-api
+COPY --from=ton_builder /ton/blockchain-api /var/ton-api/src
+COPY ./local_config.cfg /var/ton-api/ton-api.config
+COPY --from=ton_node /var/ton-work/db/liteserver.pub /var/ton-api/liteserver.pub
+
+WORKDIR /var/ton-api/src
+
+# Install dependencies with yarn
+RUN yarn install
+
+WORKDIR /var/ton-api
+
+EXPOSE 14001
+
+CMD ["node", "src/index.js"]
