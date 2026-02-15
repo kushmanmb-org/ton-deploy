@@ -9,8 +9,8 @@ RUN apt update && \
 RUN curl -fsSL https://deb.nodesource.com/setup_16.x | bash - && \
 	apt-get install -y nodejs
 
-# Install Yarn
-RUN npm install -g yarn
+# Enable Yarn via Corepack (built into Node.js 16.9+)
+RUN corepack enable
 
 RUN mkdir -p /var/ton-api
 
