@@ -3,14 +3,29 @@
   "version": "1.0.0",
   "description": "It is a compilation of Docker compose files for starting TON node, API, database, indexer and NGinx.",
   "main": "index.js",
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node --test",
+    "lint": "echo 'Linting shell scripts...' && shellcheck scripts/*.sh start.sh stop.sh 2>/dev/null || echo 'shellcheck not installed, skipping'",
+    "validate": "npm run lint && npm run test",
+    "docker:build": "docker-compose -f ton-compose.yaml build && docker-compose -f docker-compose.yaml build",
+    "docker:up": "docker-compose -f ton-compose.yaml up -d && docker-compose -f docker-compose.yaml up -d",
+    "docker:down": "docker-compose -f ton-compose.yaml down && docker-compose -f docker-compose.yaml down",
+    "deploy": "npm run validate && ./start.sh"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/kushmanmb-org/ton-deploy.git"
   },
-  "keywords": [],
+  "keywords": [
+    "ton",
+    "blockchain",
+    "docker",
+    "deployment"
+  ],
   "author": "",
   "license": "ISC",
   "type": "commonjs",

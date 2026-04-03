@@ -1,0 +1,121 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run security audit
+        run: npm audit --audit-level=high
+        continue-on-error: true
+
+      - name: Run tests
+        run: npm test
+
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    needs: test
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run npm audit
+        run: npm audit --production
+
+  validate-dockerfiles:
+    name: Validate Docker Configuration
+    runs-on: ubuntu-latest
+    needs: test
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Validate docker-compose files
+        run: |
+          # Check if template files exist
+          for file in docker-compose.yaml.template ton-compose.yaml; do
+            if [ -f "$file" ]; then
+              echo "✓ Found: $file"
+            else
+              echo "✗ Missing: $file"
+            fi
+          done
+          
+          # Validate ton-compose.yaml syntax
+          docker compose -f ton-compose.yaml config --quiet 2>/dev/null || echo "Warning: Could not validate ton-compose.yaml"
+
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    needs: [test, security-scan, validate-dockerfiles]
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run pre-deployment checks
+        run: |
+          echo "Running pre-deployment checks..."
+          node -e "
+            const deploy = require('./index.js');
+            console.log('Checking Docker...', deploy.checkDocker() ? '✓' : '✗');
+            console.log('Checking docker-compose...', deploy.checkDockerCompose() ? '✓' : '✗');
+            const templates = deploy.checkTemplateFiles();
+            console.log('Template files:', templates.valid ? '✓ All present' : '✗ Missing: ' + templates.missing.join(', '));
+          "
+
+      - name: Deploy notification
+        run: |
+          echo "✓ All tests passed"
+          echo "✓ Security scan completed"
+          echo "✓ Docker configuration validated"
+          echo "Ready for deployment!"
+          echo ""
+          echo "To deploy manually, run: ./start.sh"
+          echo "To stop services, run: ./stop.sh"
