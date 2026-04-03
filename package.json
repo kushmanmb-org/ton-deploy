@@ -34,6 +34,8 @@
   },
   "homepage": "https://github.com/kushmanmb-org/ton-deploy#readme",
   "dependencies": {
+    "ton-core": "^0.53.0",
+    "ton-crypto": "^3.2.0",
     "wormhole-crypto": "^0.3.1"
   }
 }
