@@ -1,0 +1,30 @@
+# This is a CODEOWNERS file.
+# Each line is a file pattern followed by one or more owners.
+
+# Default owners for everything in the repository
+*                           @kushmanmb-org/maintainers
+
+# Docker-related files
+*.Dockerfile                @kushmanmb-org/maintainers
+*.Dockerfile.template       @kushmanmb-org/maintainers
+docker-compose.yaml*        @kushmanmb-org/maintainers
+ton-compose.yaml            @kushmanmb-org/maintainers
+
+# Shell scripts
+*.sh                        @kushmanmb-org/maintainers
+scripts/                    @kushmanmb-org/maintainers
+
+# Configuration files
+*.conf                      @kushmanmb-org/maintainers
+*.cfg.template              @kushmanmb-org/maintainers
+*.env                       @kushmanmb-org/maintainers
+
+# Nginx configuration
+nginx/                      @kushmanmb-org/maintainers
+
+# Documentation
+*.md                        @kushmanmb-org/maintainers
+
+# Package management
+package.json                @kushmanmb-org/maintainers
+package-lock.json           @kushmanmb-org/maintainers
